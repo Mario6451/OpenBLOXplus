@@ -1,0 +1,21 @@
+make: Entering directory '/home/egeha/source/repos/OpenBLOX/C_Engine/Makefiles'
+Compiling ../../C_Engine/Platform/3DS/studio_editor.cpp
+/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++ -march=armv6k -mtune=mpcore -mword-relocations -O2 -g -DBUILD_3DS -fno-exceptions -std=gnu++17 -I/c/devkitPro/libctru/include -I../../C_Engine -I../../C_Engine/ThirdParty -I../../C_Engine/ThirdParty/lua51 -I../../ThirdParty -c ../../C_Engine/Platform/3DS/studio_editor.cpp -o ../../C_Engine/Platform/3DS/studio_editor.o
+Compiling ../../C_Engine/Platform/3DS/studio_objects.cpp
+/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++ -march=armv6k -mtune=mpcore -mword-relocations -O2 -g -DBUILD_3DS -fno-exceptions -std=gnu++17 -I/c/devkitPro/libctru/include -I../../C_Engine -I../../C_Engine/ThirdParty -I../../C_Engine/ThirdParty/lua51 -I../../ThirdParty -c ../../C_Engine/Platform/3DS/studio_objects.cpp -o ../../C_Engine/Platform/3DS/studio_objects.o
+Compiling ../../C_Engine/Platform/3DS/studio_toolbox.cpp
+/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++ -march=armv6k -mtune=mpcore -mword-relocations -O2 -g -DBUILD_3DS -fno-exceptions -std=gnu++17 -I/c/devkitPro/libctru/include -I../../C_Engine -I../../C_Engine/ThirdParty -I../../C_Engine/ThirdParty/lua51 -I../../ThirdParty -c ../../C_Engine/Platform/3DS/studio_toolbox.cpp -o ../../C_Engine/Platform/3DS/studio_toolbox.o
+../../C_Engine/Platform/3DS/studio_toolbox.cpp: In function 'void StudioToolbox::drawToolbox()':
+../../C_Engine/Platform/3DS/studio_toolbox.cpp:98:23: error: cannot convert 'gfxScreen_t' to 'PrintConsole*'
+   98 |         consoleSelect(GFX_BOTTOM);
+      |                       ^~~~~~~~~~
+      |                       |
+      |                       gfxScreen_t
+In file included from C:/devkitPro/libctru/include/3ds.h:28,
+                 from ../../C_Engine/Platform/3DS/studio_toolbox.h:5,
+                 from ../../C_Engine/Platform/3DS/studio_toolbox.cpp:1:
+C:/devkitPro/libctru/include/3ds/console.h:157:43: note: initializing argument 1 of 'PrintConsole* consoleSelect(PrintConsole*)'
+  157 | PrintConsole *consoleSelect(PrintConsole* console);
+      |                             ~~~~~~~~~~~~~~^~~~~~~
+make: *** [makefile_3ds:77: ../../C_Engine/Platform/3DS/studio_toolbox.o] Error 1
+make: Leaving directory '/home/egeha/source/repos/OpenBLOX/C_Engine/Makefiles'

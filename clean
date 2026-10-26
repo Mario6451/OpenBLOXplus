@@ -1,0 +1,6 @@
+cd C_Engine/Makefiles
+# Remove ALL .o files (not just what make knows about)
+find ../../ -name "*.o" -delete
+make -f makefile_3ds clean
+cd ../..
+make 3ds cia

@@ -1,0 +1,9 @@
+Makefiles/build_ds
+Makefiles/build_pc
+Makefiles/build_3ds
+Makefiles/build_rvl
+Makefiles/*.3dsx
+Makefiles/*.cia
+Makefiles/*.elf
+*.o
+.vscode

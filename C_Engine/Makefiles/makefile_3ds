@@ -1,0 +1,172 @@
+# 3DS build Makefile for devkitPro/libctru
+# Usage: from Makefiles directory:
+#   make -f makefile_3ds          # Build all (3DSX + CIA + FIRM)
+#   make -f makefile_3ds 3dsx     # Build 3DSX only
+#   make -f makefile_3ds cia      # Build CIA only
+#   make -f makefile_3ds clean    # Clean all artifacts
+
+# Detect environment: MSYS2 (/c/devkitPro) > Windows (C:/devkitPro) > Linux (/opt/devkitpro)
+DEVKITPRO := $(if $(wildcard /c/devkitPro),/c/devkitPro,$(if $(wildcard C:/devkitPro),C:/devkitPro,/opt/devkitpro))
+DEVKITARM := $(DEVKITPRO)/devkitARM
+CC := $(DEVKITARM)/bin/arm-none-eabi-gcc
+CXX := $(DEVKITARM)/bin/arm-none-eabi-g++
+AR := $(DEVKITARM)/bin/arm-none-eabi-ar
+STRIP := $(DEVKITARM)/bin/arm-none-eabi-strip
+LD := $(DEVKITARM)/bin/arm-none-eabi-ld
+
+TARGET := OpenBLOX3DS
+APPMETA := OpenBLOX3DS.appmeta
+
+# RAM allocation mode (default 32MB, override via make: make RAM=64MB)
+RAM ?= 32MB
+
+# Select appmeta based on RAM setting
+ifeq ($(RAM),64MB)
+APPMETA := OpenBLOX3DS_64MB.appmeta
+else ifeq ($(RAM),72MB)
+APPMETA := OpenBLOX3DS_72MB.appmeta
+else ifeq ($(RAM),80MB)
+APPMETA := OpenBLOX3DS_80MB.appmeta
+else ifeq ($(RAM),96MB)
+APPMETA := OpenBLOX3DS_96MB.appmeta
+else ifeq ($(RAM),124MB)
+APPMETA := OpenBLOX3DS_124MB.appmeta
+else ifeq ($(RAM),178MB)
+APPMETA := OpenBLOX3DS_178MB.appmeta
+else
+APPMETA := OpenBLOX3DS.appmeta
+endif
+
+# Paths for tools (no external CRT0 -- custom _start in 3ds_crt_stub.c handles startup)
+OBJCOPY := $(DEVKITARM)/bin/arm-none-eabi-objcopy
+EXE := .exe
+MAKEROM := C:/devkitPro/tools/bin/makerom$(EXE)
+
+# Gather sources (paths are relative to this Makefiles directory)
+# Exclude Lua CLI tools, haptic feedback, duplicate system files, and crt stub
+SRCDIR := $(dir $(lastword $(MAKEFILE_LIST)))
+PROJECT_ROOT := C:/Users/egeha/source/repos/OpenBLOX
+SRCS_C   := $(filter-out $(PROJECT_ROOT)/C_Engine/ThirdParty/lua51/lua.c $(PROJECT_ROOT)/C_Engine/ThirdParty/lua51/luac.c $(PROJECT_ROOT)/C_Engine/ThirdParty/lua51/print.c $(PROJECT_ROOT)/C_Engine/Platform/3DS/3ds_crt_stub.c,$(shell find $(PROJECT_ROOT)/C_Engine -name '*.c') $(shell find $(PROJECT_ROOT)/ThirdParty -maxdepth 1 -name '*.c'))
+SRCS_CPP := $(filter-out $(PROJECT_ROOT)/C_Engine/Platform/3DS/haptic_feedback.cpp $(PROJECT_ROOT)/C_Engine/Platform/3DS/inventory_system.cpp $(PROJECT_ROOT)/C_Engine/Platform/3DS/particle.cpp,$(shell find $(PROJECT_ROOT)/C_Engine -name '*.cpp') $(shell find $(PROJECT_ROOT)/ThirdParty -maxdepth 1 -name '*.cpp'))
+SRCS     := $(SRCS_C) $(SRCS_CPP)
+OBJS     := $(SRCS:.cpp=.o)
+OBJS     := $(OBJS:.c=.o)
+# Auto-discover .pica shader sources
+# Shader build: .v.pica → picasso → .shbin → bin2s → .h + .o (linked)
+SHADER_DIR := $(PROJECT_ROOT)/C_Engine/Platform/3DS
+SHBIN      := $(SHADER_DIR)/citro3d_shader.shbin
+SHBIN_O    := $(SHADER_DIR)/citro3d_shader_shbin.o
+
+OBJS       := $(OBJS) $(SHBIN_O)
+
+# CRT0 objects (compiled with different flags for CIA vs 3DSX)
+CRT_O_CIA  := $(SHADER_DIR)/3ds_crt_stub.o
+CRT_O_3DSX := $(SHADER_DIR)/3ds_crt_stub_3dsx.o
+
+INCLUDES := -I$(DEVKITPRO)/libctru/include -I$(DEVKITPRO)/portlibs/3ds/include -I$(PROJECT_ROOT)/C_Engine -I$(PROJECT_ROOT)/C_Engine/ThirdParty -I$(PROJECT_ROOT)/C_Engine/ThirdParty/lua51 -I$(PROJECT_ROOT)/C_Engine/ThirdParty/TinyPhysicsEngine -I$(PROJECT_ROOT)/ThirdParty -I$(PROJECT_ROOT)/C_Engine/ThirdParty/luau -I$(SHADER_DIR) -I$(PROJECT_ROOT)/C_Engine/CoreEngine
+
+CFLAGS   := -march=armv6k -mtune=mpcore -mword-relocations -O2 -g -DBUILD_3DS -mfloat-abi=hard -mfpu=neon -Wno-attributes -marm -Wno-unused-result
+
+# Custom _start in 3ds_crt_stub.c handles startup (no external CRT0 needed)
+CRTINCLUDES :=
+CXXFLAGS := $(CFLAGS) -fno-exceptions -std=gnu++17
+
+# crt0 flags: CIA uses RUNFLAG_APTREINIT, 3DSX uses 0 (homebrew mode)
+CRT_FLAGS_CIA := -DCRT_CIA_MODE
+CRT_FLAGS_3DSX := -DCRT_3DSX_MODE
+
+# Compile rule for CIA crt stub
+$(CRT_O_CIA): $(SHADER_DIR)/3ds_crt_stub.c
+	@echo "Compiling CRT0 (CIA mode)"
+	$(CC) $(CFLAGS) $(INCLUDES) $(CRT_FLAGS_CIA) -c $< -o $@
+
+# Compile rule for 3DSX crt stub
+$(CRT_O_3DSX): $(SHADER_DIR)/3ds_crt_stub.c
+	@echo "Compiling CRT0 (3DSX mode)"
+	$(CC) $(CFLAGS) $(INCLUDES) $(CRT_FLAGS_3DSX) -c $< -o $@
+
+# Link libraries (citro3d ships with libctru; zlib in toolchain)
+# -ln3ds is obsolete, use -lctru instead
+LIBDIRS := $(DEVKITARM)/arm-none-eabi/lib $(DEVKITPRO)/libctru/lib $(DEVKITPRO)/portlibs/3ds/lib
+
+CPU_FLAGS := -mfloat-abi=hard
+CFLAGS += -fno-semantic-interposition
+LDLIBS := -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lz -lcitro3d -lcitro2d -lctru -lstdc++ -lm
+LDFLAGS := $(CPU_FLAGS) $(addprefix -L,$(LIBDIRS)) -lsupc++ -Wl,--no-warn-mismatch
+
+
+ELFDIR := $(PROJECT_ROOT)/C_Engine/Makefiles
+
+# Build targets
+all: $(TARGET).3dsx $(TARGET).cia 
+
+# Individual build targets
+3dsx: $(TARGET).3dsx
+cia: $(TARGET).cia
+
+# Compile rules
+%.o: %.cpp
+	@echo "Compiling $<"
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+
+%.o: %.c
+	@echo "Compiling $<"
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+%.o: %.S
+	@echo "Assembling $<"
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Shader compilation: .v.pica → .shbin (via picasso) → .o + .h (via bin2s)
+$(SHBIN): $(SHADER_DIR)/citro3d_shader.v.pica
+	@echo "Compiling shader $<"
+	picasso -o $@ $<
+
+$(SHBIN_O): $(SHBIN)
+	@echo "Embedding shader binary $<"
+	bin2s -a 4 -H citro3d_shader_shbin.h $< > citro3d_shader_shbin.s
+	$(CC) -x assembler-with-cpp $(CFLAGS) -I. -c citro3d_shader_shbin.s -o $@
+	cp citro3d_shader_shbin.h $(SHADER_DIR)/
+	rm -f citro3d_shader_shbin.h citro3d_shader_shbin.s
+
+# Ensure shader .o is built before render_pipeline.o
+$(SHADER_DIR)/render_pipeline.o: $(SHBIN_O)
+
+.PRECIOUS: $(SHBIN)
+
+# Link ELF from object files
+# CIA: base 0x100000 (uses 3dsx.ld)
+$(TARGET).elf: $(OBJS) $(CRT_O_CIA)
+	@echo "Linking $@ (CIA base 0x100000)"
+	$(CXX) $(LDFLAGS) -T $(SHADER_DIR)/3dsx.ld -e _start -o $@ $(CRT_O_CIA) $(OBJS) $(LDLIBS) -Wl,-Map,$(TARGET).map
+
+# 3DSX: base 0x08000000 (uses 3dsx_3dsx.ld)
+$(TARGET).3dsx_elf: $(OBJS) $(CRT_O_3DSX)
+	@echo "Linking $@ (3DSX base 0x08000000)"
+	$(CXX) $(LDFLAGS) -T $(SHADER_DIR)/3dsx_3dsx.ld -e _start -o $@ $(CRT_O_3DSX) $(OBJS) $(LDLIBS) -Wl,-Map,$(TARGET)_3dsx.map
+
+$(TARGET).3dsx: $(TARGET).3dsx_elf
+	@echo "Creating 3DSX $@"
+	3dsxtool $(TARGET).3dsx_elf $(TARGET).3dsx || echo "3DSX build failed. Use CIA instead."
+	rm -f $(ELFDIR)/$(TARGET).3dsx_elf
+
+$(TARGET).cia: $(TARGET).elf
+	@echo "Creating CIA $@"
+	$(MAKEROM) -f cia -o $(ELFDIR)/$(TARGET).cia -elf $(TARGET).elf -icon $(ELFDIR)/icon.smdh -rsf $(ELFDIR)/$(APPMETA)
+
+# Clean build artifacts
+clean:
+	rm -f $(OBJS) $(CRT_O_CIA) $(CRT_O_3DSX) $(TARGET).elf $(TARGET).3dsx_elf $(TARGET).3dsx $(ELFDIR)/$(TARGET).cia $(ELFDIR)/$(TARGET).sfdx $(ELFDIR)/$(TARGET).srsf $(ELFDIR)/$(TARGET).rsf $(ELFDIR)/$(TARGET).map $(ELFDIR)/$(TARGET)_3dsx.map
+
+# Generate RAM variant appmeta files from the 32MB template
+gen-ram-metas:
+	@echo "Generating RAM variant appmeta files..."
+	@sed 's/SystemMode.*: 32MB/SystemMode                    : 64MB/' OpenBLOX3DS.appmeta > OpenBLOX3DS_64MB.appmeta
+	@sed 's/SystemMode.*: 32MB/SystemMode                    : 72MB/' OpenBLOX3DS.appmeta > OpenBLOX3DS_72MB.appmeta
+	@sed 's/SystemMode.*: 32MB/SystemMode                    : 80MB/' OpenBLOX3DS.appmeta > OpenBLOX3DS_80MB.appmeta
+	@sed 's/SystemMode.*: 32MB/SystemMode                    : 96MB/' OpenBLOX3DS.appmeta > OpenBLOX3DS_96MB.appmeta
+	@sed -e 's/SystemModeExt.*: 124MB/SystemModeExt                 : Legacy/' OpenBLOX3DS.appmeta > OpenBLOX3DS_124MB.appmeta
+	@sed -e 's/SystemMode.*: 32MB/SystemMode                    : 96MB/' -e 's/SystemModeExt.*: 124MB/SystemModeExt                 : 178MB/' OpenBLOX3DS.appmeta > OpenBLOX3DS_178MB.appmeta
+	@echo "RAM variant files generated."
+
+.PHONY: all clean 3dsx cia firm gen-ram-metas

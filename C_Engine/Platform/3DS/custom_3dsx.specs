@@ -1,0 +1,2 @@
+*link:
++ -T 3dsx.ld -d --emit-relocs --use-blx --gc-sections

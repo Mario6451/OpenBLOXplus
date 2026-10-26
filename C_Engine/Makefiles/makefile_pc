@@ -1,0 +1,25 @@
+TARGET      :=  build_pc/main
+BUILD       :=  build_pc
+SOURCES     :=  ../src ../include
+INCLUDES    :=  ../include
+
+CFLAGS      := -Wall -ffunction-sections -fdata-sections $(INCLUDES:%=-I%)
+CXXFLAGS    := $(CFLAGS) -fno-exceptions -DPC_BUILD -g
+
+LIBS        :=  -lSDL -lSDLmain -lGL -lGLU
+
+CPPFILES := ../main.cpp
+
+OBJS        :=  $(CPPFILES:../src/%.cpp=$(BUILD)/%.o)
+
+$(TARGET): $(OBJS)
+	mkdir -p $(BUILD)
+	$(CXX) $(CXXFLAGS) $(OBJS) $(LIBS) -o $(TARGET)
+
+
+$(BUILD)/%.o: ../src/%.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+clean:
+	rm -rf $(TARGET)
+	rm -rf $(BUILD)/*.o

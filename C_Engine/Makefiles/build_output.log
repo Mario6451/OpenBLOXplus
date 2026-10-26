@@ -1,0 +1,102 @@
+Compiling ../../C_Engine/Platform/3DS/render_pipeline.cpp
+/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++ -march=armv6k -mtune=mpcore -mword-relocations -O2 -g -DBUILD_3DS -fno-exceptions -std=gnu++17 -I/c/devkitPro/libctru/include -I../../C_Engine -I../../C_Engine/ThirdParty -I../../C_Engine/ThirdParty/lua51 -I../../ThirdParty -c ../../C_Engine/Platform/3DS/render_pipeline.cpp -o ../../C_Engine/Platform/3DS/render_pipeline.o
+../../C_Engine/Platform/3DS/render_pipeline.cpp: In function 'void Bdraw(float*, int, bool, const void*, int)':
+../../C_Engine/Platform/3DS/render_pipeline.cpp:18:5: error: 'BufInfo' was not declared in this scope
+   18 |     BufInfo* b=C3D_GetBufInfo();BufInfo_Init(b);
+      |     ^~~~~~~
+../../C_Engine/Platform/3DS/render_pipeline.cpp:18:14: error: 'b' was not declared in this scope
+   18 |     BufInfo* b=C3D_GetBufInfo();BufInfo_Init(b);
+      |              ^
+../../C_Engine/Platform/3DS/render_pipeline.cpp: In function 'void BdrawI(float*, int, uint16_t*, int)':
+../../C_Engine/Platform/3DS/render_pipeline.cpp:24:5: error: 'BufInfo' was not declared in this scope
+   24 |     BufInfo* b=C3D_GetBufInfo();BufInfo_Init(b);
+      |     ^~~~~~~
+../../C_Engine/Platform/3DS/render_pipeline.cpp:24:14: error: 'b' was not declared in this scope
+   24 |     BufInfo* b=C3D_GetBufInfo();BufInfo_Init(b);
+      |              ^
+../../C_Engine/Platform/3DS/render_pipeline.cpp: In function 'bool RenderPipeline::init(int, int, int, int)':
+../../C_Engine/Platform/3DS/render_pipeline.cpp:36:54: error: cannot convert 'GPU_TEXCOLOR' to 'GPU_COLORBUF'
+   36 |     topScreen=C3D_RenderTargetCreate(s_top_w,s_top_h,GPU_RGB8,1);
+      |                                                      ^~~~~~~~
+      |                                                      |
+      |                                                      GPU_TEXCOLOR
+In file included from C:/devkitPro/libctru/include/citro3d.h:30,
+                 from ../../C_Engine/Platform/3DS/render_pipeline.h:4,
+                 from ../../C_Engine/Platform/3DS/render_pipeline.cpp:1:
+C:/devkitPro/libctru/include/c3d/renderqueue.h:62:78: note: initializing argument 3 of 'C3D_RenderTarget* C3D_RenderTargetCreate(int, int, GPU_COLORBUF, C3D_DEPTHTYPE)'
+   62 | C3D_RenderTarget* C3D_RenderTargetCreate(int width, int height, GPU_COLORBUF colorFmt, C3D_DEPTHTYPE depthFmt);
+      |                                                                 ~~~~~~~~~~~~~^~~~~~~~
+../../C_Engine/Platform/3DS/render_pipeline.cpp:39:63: error: cannot convert 'GPU_TEXCOLOR' to 'GPU_COLORBUF'
+   39 |     bottomScreen=C3D_RenderTargetCreate(s_bottom_w,s_bottom_h,GPU_RGB8,1);
+      |                                                               ^~~~~~~~
+      |                                                               |
+      |                                                               GPU_TEXCOLOR
+C:/devkitPro/libctru/include/c3d/renderqueue.h:62:78: note: initializing argument 3 of 'C3D_RenderTarget* C3D_RenderTargetCreate(int, int, GPU_COLORBUF, C3D_DEPTHTYPE)'
+   62 | C3D_RenderTarget* C3D_RenderTargetCreate(int width, int height, GPU_COLORBUF colorFmt, C3D_DEPTHTYPE depthFmt);
+      |                                                                 ~~~~~~~~~~~~~^~~~~~~~
+../../C_Engine/Platform/3DS/render_pipeline.cpp:43:27: error: 'GPU_ATTRIB_3_component' was not declared in this scope
+   43 |     GPU_SetAttribEnable(0,GPU_ATTRIB_3_component);
+      |                           ^~~~~~~~~~~~~~~~~~~~~~
+../../C_Engine/Platform/3DS/render_pipeline.cpp:43:5: error: 'GPU_SetAttribEnable' was not declared in this scope
+   43 |     GPU_SetAttribEnable(0,GPU_ATTRIB_3_component);
+      |     ^~~~~~~~~~~~~~~~~~~
+../../C_Engine/Platform/3DS/render_pipeline.cpp: In function 'void RenderPipeline::clearScreen(float, float, float, float)':
+../../C_Engine/Platform/3DS/render_pipeline.cpp:56:5: error: 'C3D_FrameClear' was not declared in this scope; did you mean 'C3D_FrameBufClear'?
+   56 |     C3D_FrameClear((C3D_ClearBits)(C3D_CLEAR_COLOR|C3D_CLEAR_DEPTH),c,0xFFFFFFFF,0);
+      |     ^~~~~~~~~~~~~~
+      |     C3D_FrameBufClear
+../../C_Engine/Platform/3DS/render_pipeline.cpp: In function 'void RenderPipeline::rotate(float, float, float, float)':
+../../C_Engine/Platform/3DS/render_pipeline.cpp:62:143: error: 'M_RAD2DEG' was not declared in this scope
+   62 | void RenderPipeline::rotate(float angle,float x,float y,float z){C3D_FVec a=FVec3_Normalize(FVec3_New(x,y,z));C3D_Mtx m;Mtx_Rotate(&m,a,angle*M_RAD2DEG,false);Mtx_Multiply(&s_stack[s_depth],&s_stack[s_depth],&m);}
+      |                                                                                                                                               ^~~~~~~~~
+../../C_Engine/Platform/3DS/render_pipeline.cpp: In function 'void RenderPipeline::drawMesh(void*, float, float, float, float)':
+../../C_Engine/Platform/3DS/render_pipeline.cpp:88:5: error: 'C3D_Buffer' was not declared in this scope; did you mean 'C3D_BufCfg'?
+   88 |     C3D_Buffer*v=(C3D_Buffer*)m->vbo;if(!v)return;
+      |     ^~~~~~~~~~
+      |     C3D_BufCfg
+../../C_Engine/Platform/3DS/render_pipeline.cpp:88:16: error: 'v' was not declared in this scope
+   88 |     C3D_Buffer*v=(C3D_Buffer*)m->vbo;if(!v)return;
+      |                ^
+../../C_Engine/Platform/3DS/render_pipeline.cpp:88:30: error: expected primary-expression before ')' token
+   88 |     C3D_Buffer*v=(C3D_Buffer*)m->vbo;if(!v)return;
+      |                              ^
+../../C_Engine/Platform/3DS/render_pipeline.cpp:89:21: error: 'C3D_BufferData' was not declared in this scope
+   89 |     float*d=(float*)C3D_BufferData(v);int n=C3D_BufferSize(v)/(sizeof(float)*9);
+      |                     ^~~~~~~~~~~~~~
+../../C_Engine/Platform/3DS/render_pipeline.cpp:89:45: error: 'C3D_BufferSize' was not declared in this scope
+   89 |     float*d=(float*)C3D_BufferData(v);int n=C3D_BufferSize(v)/(sizeof(float)*9);
+      |                                             ^~~~~~~~~~~~~~
+../../C_Engine/Platform/3DS/render_pipeline.cpp:91:20: error: 'i' was not declared in this scope
+   91 |         C3D_Buffer*i=(C3D_Buffer*)m->ibo;Bdraw(d,n,true,C3D_BufferData(i),m->num_indices);}
+      |                    ^
+../../C_Engine/Platform/3DS/render_pipeline.cpp:91:34: error: expected primary-expression before ')' token
+   91 |         C3D_Buffer*i=(C3D_Buffer*)m->ibo;Bdraw(d,n,true,C3D_BufferData(i),m->num_indices);}
+      |                                  ^
+../../C_Engine/Platform/3DS/render_pipeline.cpp: In function 'void RenderPipeline::setDepthTest(bool)':
+../../C_Engine/Platform/3DS/render_pipeline.cpp:93:85: error: 'GPU_FULL' was not declared in this scope; did you mean 'GPU_L8'?
+   93 | void RenderPipeline::setDepthTest(bool e){C3D_DepthTest(e,e?GPU_GEQUAL:GPU_ALWAYS,e?GPU_FULL:GPU_OFF);}
+      |                                                                                     ^~~~~~~~
+      |                                                                                     GPU_L8
+../../C_Engine/Platform/3DS/render_pipeline.cpp:93:94: error: 'GPU_OFF' was not declared in this scope; did you mean 'GPU_ONE'?
+   93 | void RenderPipeline::setDepthTest(bool e){C3D_DepthTest(e,e?GPU_GEQUAL:GPU_ALWAYS,e?GPU_FULL:GPU_OFF);}
+      |                                                                                              ^~~~~~~
+      |                                                                                              GPU_ONE
+../../C_Engine/Platform/3DS/render_pipeline.cpp: In function 'void RenderPipeline::setBlend(bool)':
+../../C_Engine/Platform/3DS/render_pipeline.cpp:95:25: error: cannot convert 'GPU_COMBINEFUNC' to 'GPU_BLENDEQUATION'
+   95 |     if(e)C3D_AlphaBlend(GPU_ADD,GPU_ADD,GPU_SRC_ALPHA,GPU_ONE_MINUS_SRC_ALPHA,GPU_ONE,GPU_ONE);
+      |                         ^~~~~~~
+      |                         |
+      |                         GPU_COMBINEFUNC
+In file included from C:/devkitPro/libctru/include/citro3d.h:22:
+C:/devkitPro/libctru/include/c3d/effect.h:12:39: note: initializing argument 1 of 'void C3D_AlphaBlend(GPU_BLENDEQUATION, GPU_BLENDEQUATION, GPU_BLENDFACTOR, GPU_BLENDFACTOR, GPU_BLENDFACTOR, GPU_BLENDFACTOR)'
+   12 | void C3D_AlphaBlend(GPU_BLENDEQUATION colorEq, GPU_BLENDEQUATION alphaEq, GPU_BLENDFACTOR srcClr, GPU_BLENDFACTOR dstClr, GPU_BLENDFACTOR srcAlpha, GPU_BLENDFACTOR dstAlpha);
+      |                     ~~~~~~~~~~~~~~~~~~^~~~~~~
+../../C_Engine/Platform/3DS/render_pipeline.cpp:96:25: error: 'GPU_OFF' was not declared in this scope; did you mean 'GPU_ONE'?
+   96 |     else C3D_AlphaBlend(GPU_OFF,GPU_OFF,GPU_ZERO,GPU_ZERO,GPU_ZERO,GPU_ZERO);}
+      |                         ^~~~~~~
+      |                         GPU_ONE
+../../C_Engine/Platform/3DS/render_pipeline.cpp: In function 'void RenderPipeline::setCulling(bool)':
+../../C_Engine/Platform/3DS/render_pipeline.cpp:97:56: error: 'GPU_BACK' was not declared in this scope
+   97 | void RenderPipeline::setCulling(bool e){C3D_CullFace(e?GPU_BACK:GPU_CULL_NONE);}
+      |                                                        ^~~~~~~~
+make: *** [makefile_3ds:77: ../../C_Engine/Platform/3DS/render_pipeline.o] Error 1
